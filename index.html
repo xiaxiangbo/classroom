@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="课堂小情侣">
+<meta name="theme-color" content="#E8878B">
+<title>🌸 课堂小情侣</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --pink:#E8878B;--pink-light:#FFF0F0;--pink-dark:#D4687C;
+  --bg1:#FFF5F5;--bg2:#FFEEF0;--card:#fff;--text:#666;--text2:#999;
+  --shadow:0 2px 16px rgba(232,135,139,.1);
+  --radius:18px;--radius-sm:12px;
+}
+body{
+  font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  background:var(--bg1);color:var(--text);min-height:100vh;
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;
+  user-select:none;-webkit-user-select:none;
+}
+.app{max-width:460px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:76px}
+
+/* 页面 */
+.page{display:none;padding:12px 14px 20px;animation:in .25s ease}
+.page.active{display:block}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* 顶部 */
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 4px 8px
+}
+.top-bar h1{font-size:22px;color:var(--pink);font-weight:700}
+.top-bar .badge{
+  font-size:11px;background:var(--pink-light);color:var(--pink);
+  padding:4px 10px;border-radius:20px;font-weight:600
+}
+
+/* 卡片 */
+.card{
+  background:var(--card);border-radius:var(--radius);
+  padding:18px;margin-bottom:14px;box-shadow:var(--shadow)
+}
+.card-head{font-size:16px;font-weight:700;color:var(--pink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-head .icon{font-size:22px}
+
+/* 倒计时环 */
+.countdown-wrap{text-align:center;padding:10px 0}
+.countdown-ring{
+  width:140px;height:140px;border-radius:50%;margin:0 auto 16px;
+  background:conic-gradient(var(--pink) var(--progress,75%),#f0e0e0 var(--progress,75%));
+  display:flex;align-items:center;justify-content:center;position:relative
+}
+.countdown-ring::after{
+  content:'';width:112px;height:112px;border-radius:50%;background:#fff;position:absolute
+}
+.countdown-time{
+  position:relative;z-index:1;font-size:32px;font-weight:800;color:var(--pink-dark)
+}
+.countdown-label{font-size:13px;color:var(--text2);margin-top:2px}
+
+/* 进度条 */
+.progress-bar{
+  height:10px;background:var(--pink-light);border-radius:5px;overflow:hidden;margin:8px 0
+}
+.progress-fill{
+  height:100%;background:linear-gradient(90deg,#F9B8B8,var(--pink),var(--pink-dark));
+  border-radius:5px;transition:width .4s
+}
+
+/* 按钮 */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:12px 24px;border:none;border-radius:24px;font-size:15px;
+  font-weight:600;cursor:pointer;transition:all .15s;color:#fff
+}
+.btn:active{transform:scale(.96)}
+.btn-pink{background:linear-gradient(135deg,#F9B8B8,var(--pink))}
+.btn-purple{background:linear-gradient(135deg,#C9A4D8,#A78BBA)}
+.btn-blue{background:linear-gradient(135deg,#A4C8E1,#8BB0C4)}
+.btn-sm{padding:8px 16px;font-size:13px;border-radius:18px}
+.btn-block{display:flex;width:100%}
+.btn-outline{
+  background:#fff;color:var(--pink);border:2px solid var(--pink)
+}
+
+/* 消息气泡 */
+.msg-list{max-height:360px;overflow-y:auto;padding-right:4px}
+.msg{
+  display:flex;margin-bottom:12px;animation:in .2s ease
+}
+.msg.me{justify-content:flex-end}
+.msg-bubble{
+  max-width:78%;padding:12px 16px;border-radius:18px;
+  font-size:14px;line-height:1.6;word-break:break-word
+}
+.msg.me .msg-bubble{background:linear-gradient(135deg,var(--pink),var(--pink-dark));color:#fff;border-radius:18px 4px 18px 18px}
+.msg.you .msg-bubble{background:#fff;border:1.5px solid #FDD;border-radius:4px 18px 18px 18px}
+.msg-time{font-size:10px;margin-top:4px;opacity:.6;text-align:right}
+.msg.me .msg-time{color:#fff}
+.msg-input-wrap{display:flex;gap:8px;margin-top:12px}
+.msg-input{
+  flex:1;padding:12px 16px;border:2px solid #FDD;border-radius:24px;
+  font-size:14px;outline:none;color:var(--text);background:var(--bg1)
+}
+.msg-input:focus{border-color:var(--pink)}
+.msg-send{
+  width:44px;height:44px;border-radius:50%;border:none;
+  background:var(--pink);color:#fff;font-size:18px;cursor:pointer;flex-shrink:0
+}
+
+/* 清单 */
+.check-item{
+  display:flex;align-items:center;padding:12px 0;
+  border-bottom:1px solid #FFF0F0;cursor:pointer
+}
+.check-item:last-child{border-bottom:none}
+.check-box{
+  width:26px;height:26px;border-radius:50%;border:2.5px solid var(--pink);
+  margin-right:12px;flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;font-size:14px;color:transparent;transition:all .2s
+}
+.check-item.done .check-box{background:var(--pink);color:#fff}
+.check-item.done .check-text{color:#ccc;text-decoration:line-through}
+.check-add{display:flex;gap:8px;margin-top:14px}
+.check-add input{
+  flex:1;padding:10px 14px;border:2px solid #FDD;border-radius:20px;
+  font-size:14px;outline:none
+}
+.check-add input:focus{border-color:var(--pink)}
+
+/* 小纸条 */
+.note-card{
+  background:linear-gradient(135deg,#FFFDF5,#FFF8E8);
+  border:1.5px solid #F5E6C8;border-radius:var(--radius);
+  padding:18px;margin-bottom:12px;position:relative
+}
+.note-card::before{
+  content:'';position:absolute;top:-8px;left:24px;
+  width:24px;height:16px;background:var(--pink);border-radius:3px;opacity:.5
+}
+.note-from{font-size:12px;color:#C9A4A6;margin-bottom:8px}
+.note-content{font-size:15px;color:#8B7355;line-height:1.8;font-style:italic}
+.note-time{font-size:11px;color:#ccc;text-align:right;margin-top:8px}
+
+/* 计时器 */
+.timer-display{
+  text-align:center;font-size:56px;font-weight:800;color:var(--pink-dark);
+  padding:10px 0;font-variant-numeric:tabular-nums;font-family:"SF Mono","Menlo",monospace
+}
+.timer-btns{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.timer-presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.timer-preset{
+  padding:8px 16px;background:var(--pink-light);border-radius:16px;
+  font-size:13px;cursor:pointer;color:var(--pink);font-weight:600
+}
+.timer-preset:active{background:var(--pink);color:#fff}
+
+/* 游戏 */
+.game-area{text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.game-emoji{font-size:72px;margin-bottom:16px;animation:bounce .6s ease infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-15px)}}
+.game-score{font-size:40px;font-weight:800;color:var(--pink);margin:12px 0}
+.game-btn{
+  width:80px;height:80px;border-radius:50%;border:none;
+  font-size:36px;cursor:pointer;background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  color:#fff;box-shadow:0 6px 20px rgba(232,135,139,.4);
+  transition:transform .1s;margin:16px 0
+}
+.game-btn:active{transform:scale(.88)}
+
+/* 课表 */
+.schedule-table{width:100%;border-collapse:collapse;font-size:13px}
+.schedule-table th,.schedule-table td{
+  padding:10px 6px;text-align:center;border:1px solid #FDD
+}
+.schedule-table th{background:var(--pink-light);color:var(--pink);font-weight:600}
+.schedule-table td{color:var(--text)}
+.schedule-table .now{background:#FFF5F5;font-weight:700;color:var(--pink)}
+.schedule-table .empty{color:#ddd}
+
+/* 底部导航 */
+.nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:460px;height:70px;
+  background:rgba(255,255,255,.95);backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  display:flex;box-shadow:0 -2px 20px rgba(0,0,0,.06);
+  border-radius:20px 20px 0 0;z-index:100;padding-bottom:env(safe-area-inset-bottom)
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;font-size:10px;color:#C9A4A6;cursor:pointer;
+  transition:all .2s;gap:2px
+}
+.nav-item .icon{font-size:22px;transition:transform .2s}
+.nav-item.active{color:var(--pink);font-weight:700}
+.nav-item.active .icon{transform:scale(1.15)}
+.nav-item:active .icon{transform:scale(.9)}
+
+/* 提示 */
+.toast{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:rgba(0,0,0,.78);color:#fff;padding:12px 28px;
+  border-radius:24px;font-size:14px;z-index:999;pointer-events:none
+}
+
+/* 弹窗 */
+.modal-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.4);z-index:200;display:flex;
+  align-items:center;justify-content:center;animation:in .2s ease
+}
+.modal{
+  background:#fff;border-radius:var(--radius);padding:24px;
+  width:88%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.15)
+}
+.modal h3{font-size:18px;color:var(--pink);margin-bottom:16px;text-align:center}
+.modal textarea{
+  width:100%;height:100px;border:2px solid #FDD;border-radius:var(--radius-sm);
+  padding:12px;font-size:14px;outline:none;resize:none;font-family:inherit
+}
+.modal textarea:focus{border-color:var(--pink)}
+.modal-btns{display:flex;gap:10px;margin-top:14px}
+.modal-btns button{flex:1}
+
+/* 安装提示 */
+.install-banner{
+  background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  color:#fff;padding:14px 18px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:14px
+}
+.install-banner button{
+  background:#fff;color:var(--pink);border:none;
+  padding:8px 18px;border-radius:18px;font-weight:700;cursor:pointer;font-size:13px
+}
+
+/* 滚动条 */
+::-webkit-scrollbar{width:0}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+<!-- ==================== 首页 ==================== -->
+<div class="page active" id="page-home">
+  <div class="top-bar">
+    <h1>🌸 课堂小情侣</h1>
+    <span class="badge" id="partnerBadge">💕 夏相博 & 张朵朵</span>
+  </div>
+
+  <div class="install-banner" id="installBanner" style="display:none">
+    <span>📲 点击安装到手机桌面～</span>
+    <button onclick="installApp()">一键安装</button>
+  </div>
+
+  <div class="card" style="background:linear-gradient(135deg,#FFF5F7,#FFF0F3)">
+    <div class="countdown-wrap">
+      <div style="font-size:14px;color:var(--text2);margin-bottom:8px">⏰ 距离下课还有</div>
+      <div class="countdown-ring" id="countdownRing">
+        <div class="countdown-time" id="countdownTime">--:--</div>
+      </div>
+      <div class="countdown-label" id="countdownLabel">今天没有课哦～去约会吧！</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="icon">📋</span>今日课堂待办</div>
+    <div id="homeTodoList"></div>
+    <div class="check-add">
+      <input id="homeTodoInput" placeholder="添加待办事项...">
+      <button class="btn btn-pink btn-sm" onclick="addHomeTodo()">+</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="icon">💌</span>最新小纸条</div>
+    <div id="latestNotes"></div>
+    <button class="btn btn-pink btn-block btn-sm" onclick="switchPage('notes')" style="margin-top:8px">写一张小纸条 →</button>
+  </div>
+</div>
+
+<!-- ==================== 悄悄话 ==================== -->
+<div class="page" id="page-chat">
+  <div class="top-bar"><h1>💬 课堂悄悄话</h1><span class="badge" id="chatBadge">2条未读</span></div>
+  <div class="card">
+    <div class="msg-list" id="msgList"></div>
+    <div class="msg-input-wrap">
+      <input class="msg-input" id="msgInput" placeholder="悄悄说一句...">
+      <button class="msg-send" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 小纸条 ==================== -->
+<div class="page" id="page-notes">
+  <div class="top-bar">
+    <h1>💌 小纸条</h1>
+    <button class="btn btn-pink btn-sm" onclick="showNoteModal()">+ 写纸条</button>
+  </div>
+  <div id="noteList"></div>
+</div>
+
+<!-- ==================== 专注计时 ==================== -->
+<div class="page" id="page-timer">
+  <div class="top-bar"><h1>🎯 课堂专注挑战</h1><span class="badge" id="timerBadge">今日专注 0 分钟</span></div>
+  <div class="card" style="text-align:center">
+    <div class="timer-display" id="timerDisplay">25:00</div>
+    <div style="color:var(--text2);font-size:13px" id="timerLabel">番茄钟 · 25分钟</div>
+    <div class="timer-btns">
+      <button class="btn btn-pink" id="timerStartBtn" onclick="toggleTimer()">▶ 开始专注</button>
+      <button class="btn btn-outline btn-sm" onclick="resetTimer()">↺</button>
+    </div>
+    <div class="timer-presets">
+      <span class="timer-preset" onclick="setTimer(15)">15分钟</span>
+      <span class="timer-preset" onclick="setTimer(25)">25分钟</span>
+      <span class="timer-preset" onclick="setTimer(40)">40分钟</span>
+      <span class="timer-preset" onclick="setTimer(45)">一节课</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="icon">📊</span>今日专注记录</div>
+    <div style="text-align:center;font-size:36px;font-weight:800;color:var(--pink)" id="focusTotal">0 分钟</div>
+    <div class="progress-bar" style="margin-top:8px">
+      <div class="progress-fill" id="focusBar" style="width:0%"></div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--text2);margin-top:4px">目标：每天专注 120 分钟</div>
+  </div>
+</div>
+
+<!-- ==================== 课间游戏 ==================== -->
+<div class="page" id="page-game">
+  <div class="top-bar"><h1>🎮 课间小游戏</h1><span class="badge" id="gameBadge">最高分: 0</span></div>
+  <div class="card">
+    <div class="game-area">
+      <div class="game-emoji" id="gameEmoji">💕</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:4px">狂点心心！10秒倒计时</div>
+      <div class="game-score" id="gameScore">0 ❤️</div>
+      <div style="font-size:20px;font-weight:700;color:var(--pink-dark)" id="gameTimer">10.0s</div>
+      <button class="game-btn" id="gameBtn" onclick="startGame()">❤️</button>
+      <div style="font-size:12px;color:var(--text2);margin-top:8px">点上面的爱心开始</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="icon">🏆</span>排行榜（本机）</div>
+    <div id="rankList" style="text-align:center;color:var(--text2)">还没有成绩，快来挑战吧！</div>
+  </div>
+</div>
+
+<!-- ==================== 课表 ==================== -->
+<div class="page" id="page-schedule">
+  <div class="top-bar"><h1>📅 课表</h1><button class="btn btn-pink btn-sm" onclick="showScheduleModal()">编辑课表</button></div>
+  <div class="card" style="overflow-x:auto">
+    <div id="scheduleView"></div>
+  </div>
+</div>
+
+</div>
+
+<!-- 底部导航 -->
+<div class="nav">
+  <div class="nav-item active" data-page="home"><span class="icon">🏠</span>首页</div>
+  <div class="nav-item" data-page="chat"><span class="icon">💬</span>悄悄话</div>
+  <div class="nav-item" data-page="notes"><span class="icon">💌</span>小纸条</div>
+  <div class="nav-item" data-page="timer"><span class="icon">🎯</span>专注</div>
+  <div class="nav-item" data-page="schedule"><span class="icon">📅</span>课表</div>
+</div>
+
+<!-- 写纸条弹窗 -->
+<div class="modal-overlay" id="noteModal" style="display:none" onclick="if(event.target===this)hideNoteModal()">
+  <div class="modal">
+    <h3>💌 写一张小纸条</h3>
+    <textarea id="noteText" placeholder="写点甜甜的话给TA..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="hideNoteModal()">取消</button>
+      <button class="btn btn-pink btn-sm" onclick="addNote()">💌 送出纸条</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑课表弹窗 -->
+<div class="modal-overlay" id="scheduleModal" style="display:none" onclick="if(event.target===this)hideScheduleModal()">
+  <div class="modal">
+    <h3>📅 快速设置课表</h3>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">
+      按格式输入：<b>周一 第1-2节 高数 教学楼A301</b><br>每行一节课，空行分隔
+    </div>
+    <textarea id="scheduleText" style="height:160px" placeholder="周一 第1-2节 高等数学 教学楼A301
+周一 第3-4节 大学英语 教学楼B202
+
+周二 第1-2节 线性代数 教学楼A305
+周二 第5-6节 体育课 体育馆
+..."></textarea>
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="hideScheduleModal()">取消</button>
+      <button class="btn btn-pink btn-sm" onclick="saveSchedule()">💾 保存课表</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+// ==================== 数据管理 ====================
+const LS = {
+  get(k,d){try{const v=localStorage.getItem('cp_'+k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){localStorage.setItem('cp_'+k,JSON.stringify(v))}
+};
+
+let todos = LS.get('todos',[
+  {text:'带课本和笔记本',done:true},
+  {text:'帮朵朵占座位',done:true},
+  {text:'认真听课不玩手机',done:false},
+  {text:'下课一起去小卖部',done:false},
+]);
+let messages = LS.get('messages',[]);
+let notes = LS.get('notes',[]);
+let focusMinutes = LS.get('focus',0);
+let gameScores = LS.get('scores',[]);
+let schedule = LS.get('schedule',defaultSchedule());
+
+function defaultSchedule(){
+  return [
+    {day:'周一',slots:[
+      {time:'第3-4节',name:'会计信息系统',room:'T12-201 财务数据分析中心'},
+      {time:'第5-6节',name:'公司战略与风险管理',room:'T19-126'},
+      {time:'第9-10节',name:'数据库原理与应用',room:'T04-104'},
+    ]},
+    {day:'周二',slots:[
+      {time:'第1-2节',name:'商业数据可视化设计',room:'T12-203 财务机器人中心'},
+      {time:'第5-6节',name:'财会职业能力综合实训',room:'T12-202 财务实习中心'},
+    ]},
+    {day:'周三',slots:[
+      {time:'第1-2节',name:'财务共享创新实验',room:'T12-220 数智审计中心'},
+      {time:'第3-4节',name:'业绩管理（双语）',room:'T15-321'},
+      {time:'第9-10节',name:'数据库原理与应用',room:'T04-104'},
+    ]},
+    {day:'周四',slots:[
+      {time:'第5-6节',name:'就业指导',room:'T14-304'},
+      {time:'第7-8节',name:'审计流程实训',room:'T11-314'},
+    ]},
+    {day:'周五',slots:[
+      {time:'第1-2节',name:'内部控制',room:'T14-413'},
+      {time:'第3-4节',name:'会计信息系统',room:'T12-201 财务数据分析中心'},
+      {time:'第5-6节',name:'财务决策实训',room:'T12-202 财务实习中心'},
+      {time:'第7-8节',name:'财务共享创新实验',room:'T12-220 数智审计中心'},
+    ]},
+  ];
+}
+
+// ==================== 页面切换 ====================
+function switchPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const target=document.getElementById('page-'+name);
+  if(target)target.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===name));
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='chat'){renderMessages();document.getElementById('chatBadge').textContent='0条未读';}
+  if(name==='notes')renderNotes();
+  if(name==='timer')renderTimerPage();
+  if(name==='game')renderGamePage();
+  if(name==='schedule')renderSchedule();
+  if(name==='home'){renderHomeTodos();renderLatestNotes();}
+}
+
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click',()=>switchPage(item.dataset.page));
+});
+
+// ==================== 倒计时 ====================
+// 大学上课时间表：每节课开始时间（分钟，从0:00算起）
+// 第1节8:00-8:45 第2节8:55-9:40 第3节10:00-10:45 第4节10:55-11:40
+// 第5节14:00-14:45 第6节14:55-15:40 第7节16:00-16:45 第8节16:55-17:40
+// 第9节19:00-19:45 第10节19:55-20:40
+const PERIOD_TIMES = {
+  1:{startH:8,startM:0,endH:8,endM:45},
+  3:{startH:10,startM:0,endH:10,endM:45},
+  5:{startH:14,startM:0,endH:14,endM:45},
+  7:{startH:16,startM:0,endH:16,endM:45},
+  9:{startH:19,startM:0,endH:19,endM:45},
+};
+
+function updateCountdown(){
+  const now=new Date();const day=now.getDay();const hour=now.getHours();const min=now.getMinutes();
+  let endHour=null,endMin=null,label='';
+  const sched=LS.get('schedule',defaultSchedule());
+  const today=sched.find(s=>s.day===['周日','周一','周二','周三','周四','周五','周六'][day]);
+  if(today&&today.slots.length>0){
+    const slots=today.slots;
+    for(const slot of slots){
+      const match=slot.time.match(/第(\d+)-(\d+)节/);
+      if(!match) continue;
+      const startPeriod=parseInt(match[1]);
+      const endPeriod=parseInt(match[2]);
+      const pt=PERIOD_TIMES[startPeriod];
+      if(!pt) continue;
+      const startMins=pt.startH*60+pt.startM;
+      // 每节课45分钟，两节连上=90分钟
+      const duration=45*(endPeriod-startPeriod+1);
+      const endMinsVal=startMins+duration;
+      const nowMins=hour*60+min;
+      if(nowMins>=startMins&&nowMins<endMinsVal){
+        endHour=Math.floor(endMinsVal/60);endMin=endMinsVal%60;
+        label=`正在上：${slot.name}`;break;
+      }
+      if(nowMins<startMins){
+        endHour=Math.floor(startMins/60);endMin=startMins%60;
+        label=`下节课：${slot.name}`;break;
+      }
+    }
+  }
+  const el=document.getElementById('countdownTime'),lb=document.getElementById('countdownLabel'),ring=document.getElementById('countdownRing');
+  if(endHour===null){
+    el.textContent='--:--';lb.textContent='今天没有课啦～去约会吧！💕';ring.style.setProperty('--progress','100%');return;
+  }
+  lb.textContent=label;
+  const endMins=endHour*60+endMin;const nowMins=hour*60+min+now.getSeconds()/60;
+  const totalMins=45;const remain=Math.max(0,endMins-nowMins);
+  const pct=Math.min(100,Math.round((1-remain/totalMins)*100));
+  ring.style.setProperty('--progress',pct+'%');
+  const rm=Math.floor(remain);const rs=Math.floor((remain-rm)*60);
+  el.textContent=`${String(rm).padStart(2,'0')}:${String(rs).padStart(2,'0')}`;
+}
+
+// ==================== 待办事项 ====================
+function renderTodos(list,containerId){
+  const el=document.getElementById(containerId);
+  if(!el)return;
+  el.innerHTML=list.map((t,i)=>`
+    <div class="check-item ${t.done?'done':''}" data-idx="${i}">
+      <div class="check-box">✓</div>
+      <span class="check-text">${t.text}</span>
+    </div>
+  `).join('');
+  el.querySelectorAll('.check-item').forEach(item=>{
+    item.addEventListener('click',function(){
+      const idx=parseInt(this.dataset.idx);
+      list[idx].done=!list[idx].done;
+      LS.set('todos',todos);
+      renderTodos(todos,'homeTodoList');
+    });
+  });
+}
+function renderHomeTodos(){renderTodos(todos,'homeTodoList')}
+function addHomeTodo(){
+  const input=document.getElementById('homeTodoInput');
+  const text=input.value.trim();
+  if(!text)return;
+  todos.push({text,done:false});
+  LS.set('todos',todos);
+  input.value='';
+  renderTodos(todos,'homeTodoList');
+}
+document.getElementById('homeTodoInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')addHomeTodo()});
+
+// ==================== 悄悄话 ====================
+function renderMessages(){
+  const el=document.getElementById('msgList');
+  el.innerHTML=messages.map(m=>`
+    <div class="msg ${m.from==='me'?'me':'you'}">
+      <div>
+        <div class="msg-bubble">${m.text}</div>
+        <div class="msg-time">${m.time}</div>
+      </div>
+    </div>
+  `).join('');
+  el.scrollTop=el.scrollHeight;
+}
+function sendMsg(){
+  const input=document.getElementById('msgInput');
+  const text=input.value.trim();
+  if(!text)return;
+  const now=new Date();
+  messages.push({from:'me',text,time:`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`});
+  if(messages.length>200)messages=messages.slice(-200);
+  LS.set('messages',messages);
+  input.value='';
+  renderMessages();
+  setTimeout(()=>{
+    const replies=['嗯嗯我在听～','哈哈哈','😊','认真听课啦！','下课再说～','你也是哦','❤️','笨蛋','好好听课！'];
+    messages.push({from:'you',text:replies[Math.floor(Math.random()*replies.length)],time:`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`});
+    if(messages.length>200)messages=messages.slice(-200);
+    LS.set('messages',messages);
+    renderMessages();
+    document.getElementById('chatBadge').textContent='1条新消息';
+  },2000+Math.random()*3000);
+}
+document.getElementById('msgInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
+
+// ==================== 小纸条 ====================
+function renderNotes(){
+  document.getElementById('noteList').innerHTML=notes.length===0
+    ?'<div class="card" style="text-align:center;color:var(--text2);padding:40px">还没有小纸条～<br>快写一张给TA吧 💌</div>'
+    :notes.slice().reverse().map((n,i)=>`
+      <div class="note-card">
+        <div class="note-from">💌 来自：${n.from}</div>
+        <div class="note-content">"${n.text}"</div>
+        <div class="note-time">${n.time}</div>
+      </div>
+    `).join('');
+}
+function renderLatestNotes(){
+  const el=document.getElementById('latestNotes');
+  const latest=notes.slice(-2).reverse();
+  el.innerHTML=latest.length===0
+    ?'<div style="text-align:center;color:var(--text2);padding:10px">还没有小纸条～</div>'
+    :latest.map(n=>`<div class="note-card"><div class="note-content">"${n.text.substring(0,50)}${n.text.length>50?'...':''}"</div><div class="note-time">${n.time}</div></div>`).join('');
+}
+function showNoteModal(){document.getElementById('noteModal').style.display='flex';document.getElementById('noteText').focus()}
+function hideNoteModal(){document.getElementById('noteModal').style.display='none';document.getElementById('noteText').value=''}
+function addNote(){
+  const text=document.getElementById('noteText').value.trim();
+  if(!text)return;
+  const now=new Date();
+  notes.push({from:'夏相博',text,time:`${now.getMonth()+1}月${now.getDate()}日 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`});
+  LS.set('notes',notes);
+  hideNoteModal();
+  renderNotes();
+  toast('💌 小纸条已送出！');
+}
+
+// ==================== 专注计时 ====================
+let timerSeconds=25*60,timerRunning=false,timerInterval=null,timerTotal=25*60;
+function renderTimerPage(){
+  updateTimerDisplay();
+  document.getElementById('focusTotal').textContent=focusMinutes+' 分钟';
+  document.getElementById('focusBar').style.width=Math.min(100,Math.round(focusMinutes/120*100))+'%';
+}
+function updateTimerDisplay(){
+  const m=Math.floor(timerSeconds/60),s=timerSeconds%60;
+  document.getElementById('timerDisplay').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function setTimer(mins){
+  if(timerRunning)stopTimer();
+  timerSeconds=mins*60;timerTotal=timerSeconds;
+  updateTimerDisplay();
+  document.getElementById('timerLabel').textContent=`番茄钟 · ${mins}分钟`;
+}
+function toggleTimer(){
+  if(timerRunning){stopTimer();return}
+  timerRunning=true;
+  document.getElementById('timerStartBtn').textContent='⏸ 暂停';
+  const startSec=timerSeconds;
+  timerInterval=setInterval(()=>{
+    timerSeconds--;updateTimerDisplay();
+    if(timerSeconds<=0){
+      stopTimer();
+      focusMinutes+=Math.round(timerTotal/60);
+      LS.set('focus',focusMinutes);
+      renderTimerPage();
+      document.getElementById('timerBadge').textContent=`今日专注 ${focusMinutes} 分钟`;
+      toast(`🎉 太棒了！完成 ${Math.round(timerTotal/60)} 分钟专注！`);
+    }
+  },1000);
+}
+function stopTimer(){
+  timerRunning=false;clearInterval(timerInterval);
+  document.getElementById('timerStartBtn').textContent='▶ 开始专注';
+  if(timerSeconds>0&&timerSeconds<timerTotal){
+    focusMinutes+=Math.round((timerTotal-timerSeconds)/60);
+    LS.set('focus',focusMinutes);
+    renderTimerPage();
+  }
+}
+function resetTimer(){
+  stopTimer();timerSeconds=timerTotal;updateTimerDisplay();
+}
+
+// ==================== 课间游戏 ====================
+let gameActive=false,gameClicks=0,gameTimeLeft=10,gameInterval=null;
+function renderGamePage(){
+  document.getElementById('gameBadge').textContent='最高分: '+(gameScores.length>0?Math.max(...gameScores):0);
+  document.getElementById('gameScore').textContent='0 ❤️';
+  document.getElementById('gameTimer').textContent='10.0s';
+  document.getElementById('gameBtn').textContent='❤️';
+  document.getElementById('gameEmoji').textContent='💕';
+  renderRanks();
+}
+function renderRanks(){
+  const sorted=[...gameScores].sort((a,b)=>b-a).slice(0,5);
+  document.getElementById('rankList').innerHTML=sorted.length===0
+    ?'还没有成绩，快来挑战吧！'
+    :sorted.map((s,i)=>`<div style="padding:6px 0;font-size:14px">${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} ${s} ❤️</div>`).join('');
+}
+function startGame(){
+  if(gameActive)return;
+  gameActive=true;gameClicks=0;gameTimeLeft=10;
+  document.getElementById('gameScore').textContent='0 ❤️';
+  document.getElementById('gameTimer').textContent='10.0s';
+  document.getElementById('gameBtn').textContent='💕';
+  document.getElementById('gameEmoji').textContent='⏱️';
+  document.getElementById('gameBtn').onclick=function(){
+    if(!gameActive)return;
+    gameClicks++;
+    document.getElementById('gameScore').textContent=gameClicks+' ❤️';
+    const btn=document.getElementById('gameBtn');
+    btn.style.transform='scale(.85)';setTimeout(()=>btn.style.transform='',80);
+  };
+  gameInterval=setInterval(()=>{
+    gameTimeLeft=Math.round((gameTimeLeft-0.1)*10)/10;
+    document.getElementById('gameTimer').textContent=gameTimeLeft.toFixed(1)+'s';
+    if(gameTimeLeft<=0){
+      clearInterval(gameInterval);gameActive=false;
+      document.getElementById('gameBtn').onclick=startGame;
+      document.getElementById('gameBtn').textContent='❤️';
+      document.getElementById('gameEmoji').textContent='🎉';
+      gameScores.push(gameClicks);
+      if(gameScores.length>20)gameScores=gameScores.slice(-20);
+      LS.set('scores',gameScores);
+      renderRanks();
+      document.getElementById('gameBadge').textContent='最高分: '+Math.max(...gameScores);
+      toast(gameClicks>=50?`🏆 太厉害了！${gameClicks} 下！`:`💪 ${gameClicks} 下！再试一次？`);
+    }
+  },100);
+}
+
+// ==================== 课表 ====================
+function renderSchedule(){
+  const sched=LS.get('schedule',defaultSchedule());
+  const now=new Date();const today=['周日','周一','周二','周三','周四','周五','周六'][now.getDay()];
+  const allTimes=[];
+  sched.forEach(d=>d.slots.forEach(s=>{if(!allTimes.includes(s.time))allTimes.push(s.time)}));
+  allTimes.sort();
+  const html=`<table class="schedule-table"><thead><tr><th></th>${sched.map(d=>`<th${d.day===today?' class="now"':''}>${d.day}</th>`).join('')}</tr></thead><tbody>${
+    allTimes.map(time=>`<tr><td style="font-weight:600;color:var(--pink)">${time}</td>${
+      sched.map(d=>{
+        const slot=d.slots.find(s=>s.time===time);
+        return slot?`<td${d.day===today?' class="now"':''}>${slot.name}<br><small style="color:#999">${slot.room}</small></td>`:`<td class="empty">-</td>`;
+      }).join('')
+    }</tr>`).join('')
+  }</tbody></table>`;
+  document.getElementById('scheduleView').innerHTML=html;
+}
+function showScheduleModal(){
+  const sched=LS.get('schedule',defaultSchedule());
+  let text='';
+  sched.forEach(d=>{d.slots.forEach(s=>text+=`${d.day} ${s.time} ${s.name} ${s.room}\n`);text+='\n'});
+  document.getElementById('scheduleText').value=text.trim();
+  document.getElementById('scheduleModal').style.display='flex';
+}
+function hideScheduleModal(){document.getElementById('scheduleModal').style.display='none'}
+function saveSchedule(){
+  const text=document.getElementById('scheduleText').value.trim();
+  const newSched=[];
+  let currentDay=null;
+  text.split('\n').forEach(line=>{
+    line=line.trim();if(!line){currentDay=null;return}
+    const parts=line.split(/\s+/);
+    if(parts.length>=3&&['周一','周二','周三','周四','周五','周六','周日'].includes(parts[0])){
+      currentDay=parts[0];
+      let dayObj=newSched.find(d=>d.day===currentDay);
+      if(!dayObj){dayObj={day:currentDay,slots:[]};newSched.push(dayObj)}
+      dayObj.slots.push({time:parts[1],name:parts[2],room:parts[3]||''});
+    }
+  });
+  LS.set('schedule',newSched);
+  hideScheduleModal();
+  renderSchedule();
+  toast('✅ 课表已更新！');
+}
+
+// ==================== PWA 安装 ====================
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('installBanner').style.display='flex';
+});
+function installApp(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{
+    document.getElementById('installBanner').style.display='none';
+  });
+}
+if(window.matchMedia('(display-mode:standalone)').matches||navigator.standalone){
+  document.getElementById('installBanner').style.display='none';
+}
+
+// ==================== 工具 ====================
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2000);
+}
+
+// ==================== 初始化 ====================
+function init(){
+  renderHomeTodos();
+  renderLatestNotes();
+  renderMessages();
+  renderNotes();
+  renderTimerPage();
+  renderGamePage();
+  renderSchedule();
+  updateCountdown();
+  setInterval(updateCountdown,10000);
+  if(focusMinutes>0)document.getElementById('timerBadge').textContent=`今日专注 ${focusMinutes} 分钟`;
+  if(gameScores.length>0)document.getElementById('gameBadge').textContent='最高分: '+Math.max(...gameScores);
+}
+init();
+</script>
+</body>
+</html>
